@@ -1,0 +1,75 @@
+name: 'Armbian/build'
+description: 'Armbian Linux build framework'
+inputs:
+  board:
+    required: true
+  flavor:
+    required: true
+  release-id:
+    required: false
+  github-token:
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Create compressed file system
+      shell: bash
+      run: |
+        dd if=/dev/zero of=./build.img bs=1 count=0 seek=7G
+        mkfs.btrfs -M ./build.img
+        mkdir ./build
+        sudo mount -o defaults,noatime,compress=zstd ./build.img ./build
+        sudo chown $UID ./build
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: armbian/build
+        path: build
+    - name: Set env
+      shell: bash
+      run: |
+        if [ ${{ inputs.flavor }} == "debian" ]
+        then
+          echo "release=bullseye" >> $GITHUB_ENV
+          echo "build-minimal=yes" >> $GITHUB_ENV
+          echo "build-desktop=no" >> $GITHUB_ENV
+        elif [ ${{ inputs.flavor }} == "ubuntu" ]
+        then
+          echo "release=focal" >> $GITHUB_ENV
+          echo "build-minimal=no" >> $GITHUB_ENV
+          echo "build-desktop=yes" >> $GITHUB_ENV
+        fi
+    - name: Build
+      shell: bash
+      run: |
+        cd ./build
+        touch .ignore_changes
+        sed -i -e 's/-it//g' ./config/templates/config-docker.conf
+        ./compile.sh docker \
+        BOARD=${{ inputs.board }} \
+        BRANCH=current \
+        RELEASE=${{ env.release }} \
+        BUILD_MINIMAL=${{ env.build-minimal }} \
+        BUILD_DESKTOP=${{ env.build-desktop }} \
+        KERNEL_ONLY=no \
+        KERNEL_CONFIGURE=no \
+        DESKTOP_ENVIRONMENT=xfce \
+        DESKTOP_ENVIRONMENT_CONFIG_NAME=config_base \
+        COMPRESS_OUTPUTIMAGE=sha,gpg,xz
+        sudo btrfs fi usage .
+    - name: Upload
+      if: inputs.release-id != '' && inputs.github-token != ''
+      uses: xresloader/upload-to-github-release@v1
+      env:
+          GITHUB_TOKEN: ${{ inputs.github-token }}
+      with:
+        release_id: ${{ inputs.release-id }}
+        file: ./build/output/images/*
+        draft: false
+    - name: Rollback release
+      if: failure() && inputs.release-id != '' && inputs.github-token != ''
+      uses: author/action-rollback@stable
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      with:
+        release_id: ${{ inputs.release-id }}
