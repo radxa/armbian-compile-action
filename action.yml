@@ -33,11 +33,15 @@ runs:
           echo "release=bullseye" >> $GITHUB_ENV
           echo "build-minimal=yes" >> $GITHUB_ENV
           echo "build-desktop=no" >> $GITHUB_ENV
+          echo "desktop-environment=" >> $GITHUB_ENV
+          echo "desktop-environment-config-name=" >> $GITHUB_ENV
         elif [ ${{ inputs.flavor }} == "ubuntu" ]
         then
           echo "release=focal" >> $GITHUB_ENV
           echo "build-minimal=no" >> $GITHUB_ENV
           echo "build-desktop=yes" >> $GITHUB_ENV
+          echo "desktop-environment=xfce" >> $GITHUB_ENV
+          echo "desktop-environment-config-name=config_base" >> $GITHUB_ENV
         fi
     - name: Build
       shell: bash
@@ -53,8 +57,8 @@ runs:
         BUILD_DESKTOP=${{ env.build-desktop }} \
         KERNEL_ONLY=no \
         KERNEL_CONFIGURE=no \
-        DESKTOP_ENVIRONMENT=xfce \
-        DESKTOP_ENVIRONMENT_CONFIG_NAME=config_base \
+        DESKTOP_ENVIRONMENT=${{ env.desktop-environment }} \
+        DESKTOP_ENVIRONMENT_CONFIG_NAME=${{ env.desktop-environment-config-name }} \
         COMPRESS_OUTPUTIMAGE=sha,gpg,xz
         sudo btrfs fi usage .
     - name: Upload
