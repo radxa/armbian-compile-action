@@ -3,8 +3,13 @@ description: 'Armbian Linux build framework'
 inputs:
   board:
     required: true
+  distro:
+    required: true
   flavor:
     required: true
+  artifacts:
+    required: false
+    default: 'false'
   release-id:
     required: false
   github-token:
@@ -28,19 +33,35 @@ runs:
     - name: Set env
       shell: bash
       run: |
-        if [ ${{ inputs.flavor }} == "debian" ]
+        case ${{ inputs.distro }} in
+          debian)
+            echo "release=bullseye" >> $GITHUB_ENV
+            ;;
+          ubuntu)
+            echo "release=jammy" >> $GITHUB_ENV
+            ;;
+          *)
+            echo "Unknown distro!" >&2
+            exit 1
+            ;;
+        esac
+        if [ ${{ inputs.flavor }} == "cli" ]
         then
-          echo "release=bullseye" >> $GITHUB_ENV
           echo "build-minimal=yes" >> $GITHUB_ENV
           echo "build-desktop=no" >> $GITHUB_ENV
           echo "desktop-environment=" >> $GITHUB_ENV
           echo "desktop-environment-config-name=" >> $GITHUB_ENV
-        elif [ ${{ inputs.flavor }} == "ubuntu" ]
-        then
-          echo "release=focal" >> $GITHUB_ENV
+        else
           echo "build-minimal=no" >> $GITHUB_ENV
           echo "build-desktop=yes" >> $GITHUB_ENV
-          echo "desktop-environment=xfce" >> $GITHUB_ENV
+          case ${{ inputs.flavor }} in
+            kde)
+              echo "desktop-environment=kde-plasma" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "desktop-environment=${{ inputs.flavor }}" >> $GITHUB_ENV
+              ;;
+          esac
           echo "desktop-environment-config-name=config_base" >> $GITHUB_ENV
         fi
     - name: Build
@@ -61,6 +82,12 @@ runs:
         DESKTOP_ENVIRONMENT_CONFIG_NAME=${{ env.desktop-environment-config-name }} \
         COMPRESS_OUTPUTIMAGE=sha,gpg,xz
         sudo btrfs fi usage .
+    - name: Upload artifacts
+      if: inputs.artifacts == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.board }}_${{ inputs.distro }}_${{ inputs.flavor }}
+        path: ./build/output/images/*
     - name: Upload
       if: inputs.release-id != '' && inputs.github-token != ''
       uses: xresloader/upload-to-github-release@v1
