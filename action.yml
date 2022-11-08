@@ -7,6 +7,9 @@ inputs:
     required: true
   flavor:
     required: true
+  kernel_branch:
+    required: false
+    default: 'current'
   artifacts:
     required: false
     default: 'false'
@@ -71,7 +74,7 @@ runs:
         sed -i -e 's/-it//g' ./config/templates/config-docker.conf
         ./compile.sh docker \
         BOARD=${{ inputs.board }} \
-        BRANCH=current \
+        BRANCH=${{ inputs.kernel_branch }} \
         RELEASE=${{ env.release }} \
         BUILD_MINIMAL=${{ env.build-minimal }} \
         BUILD_DESKTOP=${{ env.build-desktop }} \
