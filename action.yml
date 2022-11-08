@@ -84,7 +84,6 @@ runs:
         DESKTOP_ENVIRONMENT_CONFIG_NAME=${{ env.desktop-environment-config-name }} \
         EXPERT=yes \
         COMPRESS_OUTPUTIMAGE=sha,gpg,xz
-        sudo btrfs fi usage .
     - name: Upload artifacts
       if: inputs.artifacts == 'true'
       uses: actions/upload-artifact@v3
