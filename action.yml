@@ -5,6 +5,8 @@ inputs:
     required: true
   distro:
     required: true
+  suite:
+    required: false
   flavor:
     required: true
   kernel_branch:
