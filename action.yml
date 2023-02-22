@@ -83,6 +83,7 @@ runs:
         KERNEL_CONFIGURE=no \
         DESKTOP_ENVIRONMENT=${{ env.desktop-environment }} \
         DESKTOP_ENVIRONMENT_CONFIG_NAME=${{ env.desktop-environment-config-name }} \
+        DESKTOP_APPGROUPS_SELECTED=desktop_tools \
         EXPERT=yes \
         COMPRESS_OUTPUTIMAGE=sha,gpg,xz
     - name: Upload artifacts
