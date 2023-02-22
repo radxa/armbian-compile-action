@@ -72,8 +72,6 @@ runs:
       shell: bash
       run: |
         cd ./build
-        touch .ignore_changes
-        sed -i -e 's/-it//g' ./config/templates/config-docker.conf
         ./compile.sh docker \
         BOARD=${{ inputs.board }} \
         BRANCH=${{ inputs.kernel_branch }} \
