@@ -73,6 +73,7 @@ runs:
       run: |
         cd ./build
         ./compile.sh \
+        PREFER_DOCKER=yes \
         BOARD=${{ inputs.board }} \
         BRANCH=${{ inputs.kernel_branch }} \
         RELEASE=${{ env.release }} \
