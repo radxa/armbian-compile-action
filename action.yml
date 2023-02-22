@@ -72,7 +72,7 @@ runs:
       shell: bash
       run: |
         cd ./build
-        ./compile.sh docker \
+        ./compile.sh \
         BOARD=${{ inputs.board }} \
         BRANCH=${{ inputs.kernel_branch }} \
         RELEASE=${{ env.release }} \
